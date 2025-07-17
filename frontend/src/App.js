@@ -13,6 +13,7 @@ function App() {
   const [provider, setProvider] = useState("azure");
   const [service, setService] = useState("");
   const [services, setServices] = useState([]);
+  const [servicesLoading, setServicesLoading] = useState(false);
   const [customPrompt, setCustomPrompt] = useState("");
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(false);
@@ -21,11 +22,12 @@ function App() {
   const [showOutput, setShowOutput] = useState(false);
   const [error, setError] = useState("");
 
-  // Fetch services from Terraform Registry
+  // Fetch services from Terraform Registry dynamically
   useEffect(() => {
     const fetchServices = async () => {
       setServices([]);
       setService("");
+      setServicesLoading(true);
       try {
         const registryProvider = PROVIDER_MAP[provider];
         if (!registryProvider) return;
@@ -38,18 +40,19 @@ function App() {
         }
       } catch (e) {
         setServices([]);
+        setError("Failed to fetch services from Terraform Registry.");
       }
+      setServicesLoading(false);
     };
     fetchServices();
+    // eslint-disable-next-line
   }, [provider]);
 
   const parseScripts = (raw) => {
-    // Try to split the output into Terraform and Terragrunt blocks
     const tfMatch = raw.match(/```(?:hcl|terraform)?([\s\S]*?)```/i);
     const tgMatch = raw.match(/Terragrunt configuration file:[\s\S]*?```hcl([\s\S]*?)```/i);
     let terraform = tfMatch ? tfMatch[1].trim() : "";
     let terragrunt = tgMatch ? tgMatch[1].trim() : "";
-    // Fallback: try to find a second code block for terragrunt
     if (!terragrunt) {
       const allBlocks = [...raw.matchAll(/```(?:hcl|terraform)?([\s\S]*?)```/gi)];
       if (allBlocks.length > 1) {
@@ -123,13 +126,20 @@ function App() {
               value={service}
               onChange={e => setService(e.target.value)}
               required
-              disabled={services.length === 0}
+              disabled={servicesLoading || services.length === 0}
             >
-              <option value="">{services.length === 0 ? "Loading..." : "Select a service"}</option>
+              <option value="">
+                {servicesLoading
+                  ? "Loading..."
+                  : services.length === 0
+                  ? "No services found"
+                  : "Select a service"}
+              </option>
               {services.map((s) => (
                 <option key={s} value={s}>{s}</option>
               ))}
             </select>
+            {servicesLoading && <span className="loader" style={{ marginLeft: 8, verticalAlign: 'middle' }}></span>}
           </label>
           <label>
             Custom Prompt (optional):
