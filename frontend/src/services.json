@@ -1,1 +1,42 @@
-
+{
+  "azure": [
+    "resource_group",
+    "storage_account",
+    "virtual_machine",
+    "network_interface",
+    "public_ip",
+    "virtual_network",
+    "subnet",
+    "network_security_group",
+    "key_vault",
+    "app_service",
+    "sql_server",
+    "sql_database"
+  ],
+  "aws": [
+    "s3_bucket",
+    "ec2_instance",
+    "vpc",
+    "subnet",
+    "security_group",
+    "iam_role",
+    "lambda_function",
+    "dynamodb_table",
+    "rds_instance",
+    "cloudfront_distribution",
+    "sns_topic",
+    "sqs_queue"
+  ],
+  "oci": [
+    "core_instance",
+    "core_vcn",
+    "core_subnet",
+    "core_internet_gateway",
+    "core_route_table",
+    "core_security_list",
+    "core_volume",
+    "core_volume_attachment",
+    "identity_user",
+    "identity_group"
+  ]
+}

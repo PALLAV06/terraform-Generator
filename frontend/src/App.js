@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import "./App.css";
+import servicesData from "./services.json";
 
 const PROVIDER_MAP = {
   azure: "azurerm",
@@ -13,7 +14,8 @@ function App() {
   const [provider, setProvider] = useState("azure");
   const [service, setService] = useState("");
   const [services, setServices] = useState([]);
-  const [servicesLoading, setServicesLoading] = useState(false);
+  const [serviceSearch, setServiceSearch] = useState("");
+  const [customService, setCustomService] = useState("");
   const [customPrompt, setCustomPrompt] = useState("");
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(false);
@@ -22,30 +24,17 @@ function App() {
   const [showOutput, setShowOutput] = useState(false);
   const [error, setError] = useState("");
 
-  // Fetch services from backend proxy endpoint
+  // Use static services list for instant dropdown
   useEffect(() => {
-    const fetchServices = async () => {
-      setServices([]);
-      setService("");
-      setServicesLoading(true);
-      setError("");
-      try {
-        const res = await fetch(`/api/GetServices?provider=${provider}`);
-        const data = await res.json();
-        if (data && Array.isArray(data.services)) {
-          setServices(data.services);
-        } else {
-          setError(data.error || "Failed to fetch services from backend.");
-        }
-      } catch (e) {
-        setServices([]);
-        setError("Failed to fetch services from backend.");
-      }
-      setServicesLoading(false);
-    };
-    fetchServices();
-    // eslint-disable-next-line
+    setServices(servicesData[provider] || []);
+    setService("");
+    setServiceSearch("");
+    setCustomService("");
   }, [provider]);
+
+  const filteredServices = services.filter(s =>
+    s.toLowerCase().includes(serviceSearch.toLowerCase())
+  );
 
   const parseScripts = (raw) => {
     const tfMatch = raw.match(/```(?:hcl|terraform)?([\s\S]*?)```/i);
@@ -69,11 +58,12 @@ function App() {
     setTerraform("");
     setTerragrunt("");
     setError("");
+    let selectedService = customService.trim() ? customService.trim() : service;
     try {
       const response = await fetch("/api/GenerateScript", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider, service, customPrompt }),
+        body: JSON.stringify({ provider, service: selectedService, customPrompt }),
       });
       const data = await response.json();
       setResult(data.result || data.error || "No result");
@@ -121,24 +111,44 @@ function App() {
           </label>
           <label>
             Service Name:
+            <input
+              type="text"
+              value={serviceSearch}
+              onChange={e => {
+                setServiceSearch(e.target.value);
+                setService("");
+                setCustomService("");
+              }}
+              placeholder="Search or type to filter services..."
+              style={{ marginBottom: 8 }}
+            />
             <select
               value={service}
-              onChange={e => setService(e.target.value)}
-              required
-              disabled={servicesLoading || services.length === 0}
+              onChange={e => {
+                setService(e.target.value);
+                setCustomService("");
+              }}
+              required={!customService}
+              disabled={filteredServices.length === 0}
+              style={{ marginBottom: 8 }}
             >
-              <option value="">
-                {servicesLoading
-                  ? "Loading..."
-                  : services.length === 0
-                  ? "No services found"
-                  : "Select a service"}
-              </option>
-              {services.map((s) => (
+              <option value="">{filteredServices.length === 0 ? "No services found" : "Select a service"}</option>
+              {filteredServices.map((s) => (
                 <option key={s} value={s}>{s}</option>
               ))}
             </select>
-            {servicesLoading && <span className="loader" style={{ marginLeft: 8, verticalAlign: 'middle' }}></span>}
+            <div style={{ marginTop: 8 }}>
+              <input
+                type="text"
+                value={customService}
+                onChange={e => {
+                  setCustomService(e.target.value);
+                  setService("");
+                }}
+                placeholder="Or enter a custom service name..."
+                style={{ width: "100%" }}
+              />
+            </div>
           </label>
           <label>
             Custom Prompt (optional):
@@ -149,7 +159,7 @@ function App() {
               rows={3}
             />
           </label>
-          <button type="submit" disabled={loading || !service} className="app-btn">
+          <button type="submit" disabled={loading || (!service && !customService)} className="app-btn">
             {loading ? <span className="loader"></span> : "Generate"}
           </button>
         </form>
