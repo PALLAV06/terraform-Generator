@@ -22,25 +22,24 @@ function App() {
   const [showOutput, setShowOutput] = useState(false);
   const [error, setError] = useState("");
 
-  // Fetch services from Terraform Registry dynamically
+  // Fetch services from backend proxy endpoint
   useEffect(() => {
     const fetchServices = async () => {
       setServices([]);
       setService("");
       setServicesLoading(true);
+      setError("");
       try {
-        const registryProvider = PROVIDER_MAP[provider];
-        if (!registryProvider) return;
-        const res = await fetch(
-          `https://registry.terraform.io/v1/providers/hashicorp/${registryProvider}/latest/docs/resources`
-        );
+        const res = await fetch(`/api/GetServices?provider=${provider}`);
         const data = await res.json();
-        if (data && Array.isArray(data.resources)) {
-          setServices(data.resources.map(r => r.name));
+        if (data && Array.isArray(data.services)) {
+          setServices(data.services);
+        } else {
+          setError(data.error || "Failed to fetch services from backend.");
         }
       } catch (e) {
         setServices([]);
-        setError("Failed to fetch services from Terraform Registry.");
+        setError("Failed to fetch services from backend.");
       }
       setServicesLoading(false);
     };
