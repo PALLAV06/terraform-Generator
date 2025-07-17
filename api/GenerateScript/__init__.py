@@ -28,20 +28,20 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             prompt = custom_prompt.strip()
         else:
             prompt = (
-                f"Generate a Terraform script and a corresponding Terragrunt configuration "
-                f"for deploying a {provider.upper()} {service}. "
-                f"Use best practices and reference the latest HashiCorp documentation. "
-                f"Output both scripts clearly labeled."
+                f"Generate a Terraform script for the {provider.upper()} service '{service}'. "
+                f"Then, generate a corresponding Terragrunt configuration file for the same resource. "
+                f"Output both scripts in separate code blocks, clearly labeled as Terraform and Terragrunt. "
+                f"Use best practices and reference the latest HashiCorp documentation."
             )
 
         # Call Azure OpenAI (GPT-3.5-turbo or specified deployment)
         response = client.chat.completions.create(
             model=os.environ.get("AZURE_OPENAI_DEPLOYMENT", "gpt-35-turbo"),
             messages=[
-                {"role": "system", "content": "You are a helpful assistant that generates Terraform and Terragrunt scripts."},
+                {"role": "system", "content": "You are a helpful assistant that generates both Terraform and Terragrunt scripts for cloud infrastructure."},
                 {"role": "user", "content": prompt}
             ],
-            max_tokens=800,
+            max_tokens=1200,
             temperature=0.2,
         )
         result = response.choices[0].message.content.strip()
