@@ -3,6 +3,7 @@ import React, { useState } from "react";
 function App() {
   const [provider, setProvider] = useState("azure");
   const [service, setService] = useState("");
+  const [customPrompt, setCustomPrompt] = useState("");
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -13,7 +14,7 @@ function App() {
     const response = await fetch("/api/GenerateScript", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ provider, service }),
+      body: JSON.stringify({ provider, service, customPrompt }),
     });
     const data = await response.json();
     setResult(data.result || data.error || "No result");
@@ -41,6 +42,17 @@ function App() {
             onChange={e => setService(e.target.value)}
             placeholder="e.g., virtual machine, s3 bucket"
             required
+            style={{ width: "100%" }}
+          />
+        </label>
+        <br /><br />
+        <label>
+          Custom Prompt (optional):
+          <textarea
+            value={customPrompt}
+            onChange={e => setCustomPrompt(e.target.value)}
+            placeholder="Describe how you want the scripts to be generated..."
+            rows={4}
             style={{ width: "100%" }}
           />
         </label>

@@ -8,6 +8,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         req_body = req.get_json()
         provider = req_body.get("provider")
         service = req_body.get("service")
+        custom_prompt = req_body.get("customPrompt", "")
         if not provider or not service:
             return func.HttpResponse(
                 json.dumps({"error": "Missing provider or service"}),
@@ -22,13 +23,16 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"]
         )
 
-        # Prompt engineering
-        prompt = (
-            f"Generate a Terraform script and a corresponding Terragrunt configuration "
-            f"for deploying a {provider.upper()} {service}. "
-            f"Use best practices and reference the latest HashiCorp documentation. "
-            f"Output both scripts clearly labeled."
-        )
+        # Use custom prompt if provided, else default
+        if custom_prompt and custom_prompt.strip():
+            prompt = custom_prompt.strip()
+        else:
+            prompt = (
+                f"Generate a Terraform script and a corresponding Terragrunt configuration "
+                f"for deploying a {provider.upper()} {service}. "
+                f"Use best practices and reference the latest HashiCorp documentation. "
+                f"Output both scripts clearly labeled."
+            )
 
         # Call Azure OpenAI (GPT-3.5-turbo or specified deployment)
         response = client.chat.completions.create(
