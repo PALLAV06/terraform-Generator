@@ -15,11 +15,12 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                 mimetype="application/json"
             )
 
-        # Azure OpenAI setup
-        openai.api_type = "azure"
-        openai.api_base = os.environ["AZURE_OPENAI_ENDPOINT"]
-        openai.api_version = "2023-05-15"
-        openai.api_key = os.environ["AZURE_OPENAI_KEY"]
+        # Azure OpenAI setup (new SDK)
+        client = openai.AzureOpenAI(
+            api_key=os.environ["AZURE_OPENAI_KEY"],
+            api_version="2023-05-15",
+            azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"]
+        )
 
         # Prompt engineering
         prompt = (
@@ -29,9 +30,9 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             f"Output both scripts clearly labeled."
         )
 
-        # Call Azure OpenAI (GPT-3.5-turbo)
-        response = openai.ChatCompletion.create(
-            engine=os.environ.get("AZURE_OPENAI_DEPLOYMENT", "gpt-35-turbo"),
+        # Call Azure OpenAI (GPT-3.5-turbo or specified deployment)
+        response = client.chat.completions.create(
+            model=os.environ.get("AZURE_OPENAI_DEPLOYMENT", "gpt-35-turbo"),
             messages=[
                 {"role": "system", "content": "You are a helpful assistant that generates Terraform and Terragrunt scripts."},
                 {"role": "user", "content": prompt}

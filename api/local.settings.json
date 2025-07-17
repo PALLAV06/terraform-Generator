@@ -1,0 +1,10 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "python",
+    "AZURE_OPENAI_ENDPOINT": "https://terraform-terragrunt-generator-openai.openai.azure.com/",
+    "AZURE_OPENAI_KEY": "47OoclckdwD46h4zgIjMQF2NbDlh6zfS8dVi2uMjm0D2rZ3uFV2DJQQJ99BGACYeBjFXJ3w3AAABACOGxT72",
+    "AZURE_OPENAI_DEPLOYMENT": "gpt-35-turbo"
+  }
+} 
